@@ -49,8 +49,11 @@ typedef struct microprocessor {
     unsigned char sp;
     unsigned short pc;
 	unsigned char status;
-    Uint16 cycles;
+    unsigned int cycles;
 } microprocessor;
+
+microprocessor cpu;
+unsigned char used; 
 
 // 
 // Read the next opcode from current pc value
@@ -58,7 +61,7 @@ typedef struct microprocessor {
 unsigned char fetchmemory()
 {
     unsigned char result;
-    result = memory[cpu.pc];
+    result = readmemory(cpu.pc);
     if (cpu.pc<0xFFFF) cpu.pc++;
     else cpu.pc=0;
     return result;
@@ -196,7 +199,7 @@ void adc (short mode)
 
 }
 
-void and (short mode) 
+void fand (short mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"and ");
@@ -249,9 +252,9 @@ void bcc (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void bcs (short mode) 
@@ -267,9 +270,9 @@ void bcs (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void beq (short mode) 
@@ -285,9 +288,9 @@ void beq (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void bit (short mode) 
@@ -317,9 +320,9 @@ void bmi (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void bne (short mode) 
@@ -335,9 +338,9 @@ void bne (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void bpl (short mode) 
@@ -353,9 +356,9 @@ void bpl (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void fbrk (short mode)
@@ -391,9 +394,9 @@ void bvc (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void bvs (short mode) 
@@ -409,9 +412,9 @@ void bvs (short mode)
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
-       cycles += 1;
+       cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cycles += 1;
+    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
 void clc (short mode)
@@ -1034,7 +1037,7 @@ int processcommand()
                                        2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2 };// F0
 
     command = fetchmemory();
-    cycles += length[command];
+    cpu.cycles += length[command];
 
 #ifdef DEBUG
     fprintf (stderr, "%2X ", command);

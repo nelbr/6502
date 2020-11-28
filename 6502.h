@@ -57,3 +57,5 @@ void txa (short mode)
 void txs (short mode) 
 void tya (short mode) 
 int processcommand()
+extern readmemory(unsigned short);
+extern writememory(unsigned short, unsigned char);
