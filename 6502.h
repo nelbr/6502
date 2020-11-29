@@ -1,61 +1,87 @@
-unsigned char fetchmemory()
-unsigned short get_address( unsigned short int mode)
-void adc (short mode) 
-void fand (short mode) 
-void asl (short mode) 
-void bcc (short mode) 
-void bcs (short mode) 
-void beq (short mode) 
-void bit (short mode) 
-void bmi (short mode) 
-void bne (short mode) 
-void bpl (short mode) 
-void fbrk (short mode)
-void bvc (short mode) 
-void bvs (short mode) 
-void clc (short mode)
-void cld (short mode)
-void cli (short mode)
-void clv (short mode)
-void cmp (short mode) 
-void cpx (short mode) 
-void cpy (short mode) 
-void dec (short mode) 
-void dex (short mode) 
-void dey (short mode) 
-void eor (short mode) 
-void inc (short mode) 
-void inx (short mode) 
-void iny (short mode) 
-void jmp (short mode) 
-void jsr (short mode) 
-void lda (short mode) 
-void ldx (short mode) 
-void ldy (short mode) 
-void lsr (short mode) 
-void nop (short mode)
-void ora (short mode) 
-void pha (short mode) 
-void php (short mode) 
-void pla (short mode) 
-void plp (short mode) 
-void rol (short mode) 
-void ror (short mode) 
-void rti (short mode) 
-void rts (short mode) 
-void sbc (short mode) 
-void sec (short mode)
-void sed (short mode)
-void sei (short mode)
-void sta (short mode) 
-void stx (short mode) 
-void sty (short mode) 
-void tax (short mode) 
-void tay (short mode) 
-void tsx (short mode) 
-void txa (short mode) 
-void txs (short mode) 
-void tya (short mode) 
-int processcommand()
-extern readmemory(unsigned short);
-extern writememory(unsigned short, unsigned char);
+// #ifndef 6502_H_   /* Include guard */
+// #define 6502_H_
+
+#define STATUS_TO_BINARY_PATTERN "     Ne %c Ov %c NA %c Br %c De %c In %c Ze %c Ca %c\n"
+#define STATUS_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
+typedef struct microprocessor {
+	unsigned char a;
+	unsigned char x;
+	unsigned char y;
+    unsigned char sp;
+    unsigned short pc;
+	unsigned char status;
+    unsigned int cycles;
+} microprocessor;
+
+unsigned char fetchmemory();
+unsigned short get_address( unsigned short int mode);
+int processcommand();
+void adc (short);
+void fand (short);
+void asl (short);
+void bcc (short);
+void bcs (short);
+void beq (short);
+void bit (short);
+void bmi (short);
+void bne (short);
+void bpl (short);
+void fbrk (short);
+void bvc (short);
+void bvs (short);
+void clc (short);
+void cld (short);
+void cli (short);
+void clv (short);
+void cmp (short);
+void cpx (short);
+void cpy (short);
+void dec (short);
+void dex (short);
+void dey (short);
+void eor (short);
+void inc (short);
+void inx (short);
+void iny (short);
+void jmp (short);
+void jsr (short);
+void lda (short);
+void ldx (short);
+void ldy (short);
+void lsr (short);
+void nop (short);
+void ora (short);
+void pha (short);
+void php (short);
+void pla (short);
+void plp (short);
+void rol (short);
+void ror (short);
+void rti (short);
+void rts (short);
+void sbc (short);
+void sec (short);
+void sed (short);
+void sei (short);
+void sta (short);
+void stx (short);
+void sty (short);
+void tax (short);
+void tay (short);
+void tsx (short);
+void txa (short);
+void txs (short);
+void tya (short);
+extern unsigned char readmemory(unsigned short);
+extern void writememory(unsigned short, unsigned char);
+
+// #endif // 6502_H_
