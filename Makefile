@@ -1,9 +1,4 @@
 CXX = gcc
-# Update these paths to match your installation
-# You may also need to update the linker option rpath, which sets where to look for
-# the SDL2 libraries at runtime to match your install
-# SDL_LIB = -L/usr/local/lib -lSDL2 -lSDL2_ttf -Wl,-rpath=/usr/local/lib
-# SDL_INCLUDE = -I/usr/local/include
 
 CXXFLAGS = -Wall -c 
 LDFLAGS = -L. -l6502
