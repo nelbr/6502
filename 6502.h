@@ -85,3 +85,4 @@ extern unsigned char readmemory(unsigned short);
 extern void writememory(unsigned short, unsigned char);
 
 #endif // 6502_H_
+
