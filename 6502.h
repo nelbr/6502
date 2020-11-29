@@ -1,5 +1,5 @@
-// #ifndef 6502_H_   /* Include guard */
-// #define 6502_H_
+#ifndef 6502_H_   /* Include guard */
+#define 6502_H_
 
 #define STATUS_TO_BINARY_PATTERN "     Ne %c Ov %c NA %c Br %c De %c In %c Ze %c Ca %c\n"
 #define STATUS_TO_BINARY(byte)  \
@@ -84,4 +84,4 @@ void tya (short);
 extern unsigned char readmemory(unsigned short);
 extern void writememory(unsigned short, unsigned char);
 
-// #endif // 6502_H_
+#endif // 6502_H_

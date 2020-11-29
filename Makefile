@@ -11,7 +11,7 @@ lib6502.a: 6502.o
 6502.o: 6502.c
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-test6502: test6502.o
+test6502: test6502.o lib6502.a
 	$(CXX) $< $(LDFLAGS) -o $@
 
 test6502.o : test6502.c
