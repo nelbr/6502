@@ -98,14 +98,12 @@ int main()
         // Uncomment this printf if you would like to check which test is executing.
         // Can be useful for finding our which test is failing, but increases execution time
         //
-        // printf ("Teste numero %2X %2X %2X %ld\n", memory[0x200], memory[0x203], memory[0x204]);
+        // printf ("Teste numero %2X %2X %2X\n", memory[0x200], memory[0x203], memory[0x204]);
         used=0;
-        if (memory[0x200]==0xF0) {
-            break;
-        }
+        if (memory[0x200]==0xF0) break;
     }
     stop = time(NULL);
-    printf ("Test completed successfully, congratulations in %4.2f\n",difftime(stop,start));
+    printf ("Test completed successfully, congratulations in %4.2fs\n",difftime(stop,start));
     // printf ("BREAK A=%02X, X=%02X, Y=%02X, SP=%02X, PC=%04X, STATUS=%02X\n", cpu.a, cpu.x, cpu.y, cpu.sp, cpu.pc, cpu.status); 
     return 0;
 }
