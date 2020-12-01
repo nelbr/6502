@@ -1,4 +1,4 @@
-Attention this in a "non working" WORK IN PROGRESS 6502 library. More documentation
+Attention this in a "WORK IN PROGRESS" 6502 library. More documentation
 to follow
 
 I have a working 6502 emulator written in C under LINUX (I am using MINT, but any
