@@ -70,7 +70,7 @@ unsigned char fetchmemory()
 //
 // Return address referenced by the addressing mode
 //
-unsigned short get_address( unsigned short int mode)
+unsigned short get_address(unsigned char mode)
 {
     unsigned char operand;
     unsigned char operand_l;
@@ -153,7 +153,7 @@ unsigned short get_address( unsigned short int mode)
 	return address;
 }
 
-void adc (short mode) 
+void adc (unsigned char mode) 
 {
     unsigned short sum; 
     unsigned short suml, sumh;
@@ -199,7 +199,7 @@ void adc (short mode)
 
 }
 
-void fand (short mode) 
+void fand (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"and ");
@@ -211,7 +211,7 @@ void fand (short mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
     
-void asl (short mode) 
+void asl (unsigned char mode) 
 {
     unsigned short aux;
     unsigned short val;
@@ -239,7 +239,7 @@ void asl (short mode)
     }
 }
 
-void bcc (short mode) 
+void bcc (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -257,7 +257,7 @@ void bcc (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bcs (short mode) 
+void bcs (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -275,7 +275,7 @@ void bcs (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void beq (short mode) 
+void beq (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -293,7 +293,7 @@ void beq (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bit (short mode) 
+void bit (unsigned char mode) 
 {
     unsigned short aux;
     unsigned char val;
@@ -307,7 +307,7 @@ void bit (short mode)
     cpu.status = ((cpu.status & ~(1UL << 7)) | (val & 1UL << 7)); // set bit negative on status processor to 7th bit of memory
 }
 
-void bmi (short mode) 
+void bmi (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -325,7 +325,7 @@ void bmi (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bne (short mode) 
+void bne (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -343,7 +343,7 @@ void bne (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bpl (short mode) 
+void bpl (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -361,7 +361,7 @@ void bpl (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void fbrk (short mode)
+void fbrk (unsigned char mode)
 {
     unsigned char operand_l, operand_h;
 #ifdef DEBUG
@@ -381,7 +381,7 @@ void fbrk (short mode)
     cpu.status |= 0x04;
 }
 
-void bvc (short mode) 
+void bvc (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -399,7 +399,7 @@ void bvc (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bvs (short mode) 
+void bvs (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -417,7 +417,7 @@ void bvs (short mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void clc (short mode)
+void clc (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"clc ");
@@ -425,7 +425,7 @@ void clc (short mode)
     cpu.status &= ~(1UL << 0);     // clear bit carry on status processor to true
 }
 
-void cld (short mode)
+void cld (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"cld ");
@@ -433,7 +433,7 @@ void cld (short mode)
     cpu.status &= ~(1UL << 3);     // clear bit decimal on status processor to true
 }
 
-void cli (short mode)
+void cli (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"cli ");
@@ -441,7 +441,7 @@ void cli (short mode)
     cpu.status &= ~(1UL << 2);     // clear bit interrupt on status processor to true (interrupt disabled)
 }
 
-void clv (short mode)
+void clv (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"clv ");
@@ -449,7 +449,7 @@ void clv (short mode)
     cpu.status &= ~(1UL << 6);     // clear bit overflow on status processor to true (interrupt disabled)
 }
 
-void cmp (short mode) 
+void cmp (unsigned char mode) 
 {
     unsigned char tmp;
 #ifdef DEBUG
@@ -463,7 +463,7 @@ void cmp (short mode)
     if ((cpu.a - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
     
-void cpx (short mode) 
+void cpx (unsigned char mode) 
 {
     unsigned char tmp;
 #ifdef DEBUG
@@ -477,7 +477,7 @@ void cpx (short mode)
     if ((cpu.x - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
 
-void cpy (short mode) 
+void cpy (unsigned char mode) 
 {
     unsigned char tmp;
 #ifdef DEBUG
@@ -491,7 +491,7 @@ void cpy (short mode)
     if ((cpu.y - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
 
-void dec (short mode) 
+void dec (unsigned char mode) 
 {
     unsigned short aux;
     unsigned short val;
@@ -507,7 +507,7 @@ void dec (short mode)
     if (val>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void dex (short mode) 
+void dex (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"dex ");
@@ -518,7 +518,7 @@ void dex (short mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void dey (short mode) 
+void dey (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"dey ");
@@ -529,7 +529,7 @@ void dey (short mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void eor (short mode) 
+void eor (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"eor ");
@@ -541,7 +541,7 @@ void eor (short mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void inc (short mode) 
+void inc (unsigned char mode) 
 {
     unsigned short aux;
     unsigned short val;
@@ -558,7 +558,7 @@ void inc (short mode)
     if (val>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
 
-void inx (short mode) 
+void inx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"inx ");
@@ -570,7 +570,7 @@ void inx (short mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void iny (short mode) 
+void iny (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"iny ");
@@ -582,7 +582,7 @@ void iny (short mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void jmp (short mode) 
+void jmp (unsigned char mode) 
 {
     unsigned char lowbyte, highbyte;
 #ifdef DEBUG
@@ -600,7 +600,7 @@ void jmp (short mode)
     }
 }
 
-void jsr (short mode) 
+void jsr (unsigned char mode) 
 {
     unsigned char operand_l, operand_h;
     operand_l = (char) (cpu.pc+1);
@@ -618,7 +618,7 @@ void jsr (short mode)
 #endif 
 }
 
-void lda (short mode) 
+void lda (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"lda ");
@@ -630,7 +630,7 @@ void lda (short mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void ldx (short mode) 
+void ldx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"ldx ");
@@ -642,7 +642,7 @@ void ldx (short mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void ldy (short mode) 
+void ldy (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"ldy ");
@@ -654,7 +654,7 @@ void ldy (short mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void lsr (short mode) 
+void lsr (unsigned char mode) 
 {
     unsigned short val;
     unsigned short aux;
@@ -680,7 +680,7 @@ void lsr (short mode)
     }
 }
 
-void nop (short mode)
+void nop (unsigned char mode)
 {
     // do nothing
 #ifdef DEBUG
@@ -689,7 +689,7 @@ void nop (short mode)
     return;
 }
 
-void ora (short mode) 
+void ora (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"ora ");
@@ -701,7 +701,7 @@ void ora (short mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void pha (short mode) 
+void pha (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"pha ");
@@ -711,7 +711,7 @@ void pha (short mode)
     else cpu.sp=0xFF;
 }
 
-void php (short mode) 
+void php (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"php ");
@@ -721,7 +721,7 @@ void php (short mode)
     else cpu.sp=0xFF;
 }
 
-void pla (short mode) 
+void pla (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"pla ");
@@ -734,7 +734,7 @@ void pla (short mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void plp (short mode) 
+void plp (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"plp ");
@@ -744,7 +744,7 @@ void plp (short mode)
     cpu.status = readmemory(0x100+cpu.sp) & 0xEF; //unset break flag
 }
 
-void rol (short mode) 
+void rol (unsigned char mode) 
 {
     unsigned char tmp;
     unsigned short aux;
@@ -775,7 +775,7 @@ void rol (short mode)
     }
 }
 
-void ror (short mode) 
+void ror (unsigned char mode) 
 {
     unsigned char tmp;
     unsigned short aux;
@@ -806,7 +806,7 @@ void ror (short mode)
     }
 }
 
-void rti (short mode) 
+void rti (unsigned char mode) 
 {
     unsigned char operand_l, operand_h;
 #ifdef DEBUG
@@ -821,7 +821,7 @@ void rti (short mode)
     cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
 }
 
-void rts (short mode) 
+void rts (unsigned char mode) 
 {
     unsigned char operand_l, operand_h;
 #ifdef DEBUG
@@ -834,7 +834,7 @@ void rts (short mode)
     cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l)) + 1;
 }
 
-void sbc (short mode) 
+void sbc (unsigned char mode) 
 {
     unsigned short sum; 
     unsigned char operand;
@@ -905,7 +905,7 @@ void sbc (short mode)
 
 }
 
-void sec (short mode)
+void sec (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"sec ");
@@ -913,7 +913,7 @@ void sec (short mode)
     cpu.status |= 1UL << 0;     // set bit carry on status processor to true
 }
 
-void sed (short mode)
+void sed (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"sed ");
@@ -921,7 +921,7 @@ void sed (short mode)
     cpu.status |= 1UL << 3;     // set bit decimal on status processor to true
 }
 
-void sei (short mode)
+void sei (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"sei ");
@@ -929,7 +929,7 @@ void sei (short mode)
     cpu.status |= 1UL << 2;     // set bit interrupt on status processor to true (interrupt disabled)
 }
 
-void sta (short mode) 
+void sta (unsigned char mode) 
 {
     int addr;
 #ifdef DEBUG
@@ -939,7 +939,7 @@ void sta (short mode)
 	writememory(addr, cpu.a);
 }
 
-void stx (short mode) 
+void stx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"stx ");
@@ -947,7 +947,7 @@ void stx (short mode)
 	writememory(get_address(mode), cpu.x);
 }
 
-void sty (short mode) 
+void sty (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"sty ");
@@ -955,7 +955,7 @@ void sty (short mode)
 	writememory(get_address(mode), cpu.y);
 }
 
-void tax (short mode) 
+void tax (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tax ");
@@ -965,7 +965,7 @@ void tax (short mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void tay (short mode) 
+void tay (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tay ");
@@ -975,7 +975,7 @@ void tay (short mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void tsx (short mode) 
+void tsx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tsx ");
@@ -985,7 +985,7 @@ void tsx (short mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void txa (short mode) 
+void txa (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"txa ");
@@ -995,7 +995,7 @@ void txa (short mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void txs (short mode) 
+void txs (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"txs ");
@@ -1003,7 +1003,7 @@ void txs (short mode)
     cpu.sp = cpu.x;
 }
 
-void tya (short mode) 
+void tya (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tya ");
