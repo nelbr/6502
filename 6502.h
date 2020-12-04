@@ -16,7 +16,7 @@ typedef struct microprocessor {
     unsigned char sp;
     unsigned short pc;
 	unsigned char status;
-    unsigned int cycles;
+    unsigned long cycles;
 } microprocessor;
 
 unsigned char fetchmemory();

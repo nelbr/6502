@@ -17,6 +17,7 @@
 // nelbr - June/July 2020
 //
 #include <time.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,15 +32,17 @@ int used=0;
 //
 // Read binary file in memory
 //
-void rominit()
+int rominit()
 {
     FILE *fp;
     int result;
     printf ("Reading memory file ./6502_functional_test.bin\n");
     fp = fopen ( "6502_functional_test.bin", "r" );
+    if ( fp == NULL ) return 8;
     result = fread (&memory,1,65536,fp);
     fclose(fp);
     printf ("file size read %d\n", result);
+    return 0;
 }
        
 //
@@ -54,6 +57,7 @@ void boot()
     cpu.sp= 0xFF;
     cpu.pc= 0x0400;
     cpu.status= 0x20;
+    cpu.cycles= 0;
 }
 //
 // Readmemory routine in this example just returns value of 64K array
@@ -78,10 +82,15 @@ void writememory(unsigned short address, unsigned char value)
 //
 int main()
 {
-    time_t start,stop;
-	rominit();
+    struct timeval start,stop;
+	if (rominit()!=0) {
+        printf( "Could not open binary test file\n" ) ;
+        printf( "This program requires the file 6502_functional_test.bin (see README for link to download)\n");
+        return 0;
+    }
     boot();
-    start = time(NULL);
+    printf ("Running test, please wait a bit\n");
+    gettimeofday(&start, NULL);
     while (processcommand()==0) 
     {
         // 
@@ -102,8 +111,12 @@ int main()
         used=0;
         if (memory[0x200]==0xF0) break;
     }
-    stop = time(NULL);
-    printf ("Test completed successfully, congratulations in %4.2fs\n",difftime(stop,start));
+    gettimeofday(&stop, NULL);
+    long seconds = (stop.tv_sec - start.tv_sec);
+    long micros = ((seconds * 1000000) + stop.tv_usec) - start.tv_usec;
+    printf ("Test completed successfully in %ld us\n",micros);
+    printf ("Number of cycles spent = %ld\n", cpu.cycles);
+    printf ("Estimated CPU speed in this computer = %ld Mhz\n", (cpu.cycles/micros));
     // printf ("BREAK A=%02X, X=%02X, Y=%02X, SP=%02X, PC=%04X, STATUS=%02X\n", cpu.a, cpu.x, cpu.y, cpu.sp, cpu.pc, cpu.status); 
     return 0;
 }
