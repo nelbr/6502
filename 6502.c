@@ -70,7 +70,7 @@ unsigned char fetchmemory()
 //
 // Return address referenced by the addressing mode
 //
-unsigned short get_address(unsigned char mode)
+__attribute((always_inline)) inline unsigned short get_address(unsigned char mode)
 {
     unsigned char operand;
     unsigned char operand_l;
@@ -153,7 +153,7 @@ unsigned short get_address(unsigned char mode)
 	return address;
 }
 
-void adc (unsigned char mode) 
+__attribute((always_inline)) inline void adc (unsigned char mode) 
 {
     unsigned short sum; 
     unsigned short suml, sumh;
@@ -199,7 +199,7 @@ void adc (unsigned char mode)
 
 }
 
-void fand (unsigned char mode) 
+__attribute((always_inline)) inline void fand (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"and ");
@@ -211,7 +211,7 @@ void fand (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
     
-void asl (unsigned char mode) 
+__attribute((always_inline)) inline void asl (unsigned char mode) 
 {
     unsigned short aux;
     unsigned short val;
@@ -239,7 +239,7 @@ void asl (unsigned char mode)
     }
 }
 
-void bcc (unsigned char mode) 
+__attribute((always_inline)) inline void bcc (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -257,7 +257,7 @@ void bcc (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bcs (unsigned char mode) 
+__attribute((always_inline)) inline void bcs (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -275,7 +275,7 @@ void bcs (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void beq (unsigned char mode) 
+__attribute((always_inline)) inline void beq (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -293,7 +293,7 @@ void beq (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bit (unsigned char mode) 
+__attribute((always_inline)) inline void bit (unsigned char mode) 
 {
     unsigned short aux;
     unsigned char val;
@@ -307,7 +307,7 @@ void bit (unsigned char mode)
     cpu.status = ((cpu.status & ~(1UL << 7)) | (val & 1UL << 7)); // set bit negative on status processor to 7th bit of memory
 }
 
-void bmi (unsigned char mode) 
+__attribute((always_inline)) inline void bmi (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -325,7 +325,7 @@ void bmi (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bne (unsigned char mode) 
+__attribute((always_inline)) inline void bne (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -343,7 +343,7 @@ void bne (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bpl (unsigned char mode) 
+__attribute((always_inline)) inline void bpl (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -361,7 +361,7 @@ void bpl (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void fbrk (unsigned char mode)
+__attribute((always_inline)) inline void fbrk (unsigned char mode)
 {
     unsigned char operand_l, operand_h;
 #ifdef DEBUG
@@ -381,7 +381,7 @@ void fbrk (unsigned char mode)
     cpu.status |= 0x04;
 }
 
-void bvc (unsigned char mode) 
+__attribute((always_inline)) inline void bvc (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -399,7 +399,7 @@ void bvc (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void bvs (unsigned char mode) 
+__attribute((always_inline)) inline void bvs (unsigned char mode) 
 {
     unsigned char branch;
     unsigned char currpage;
@@ -417,7 +417,7 @@ void bvs (unsigned char mode)
     if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
 }
 
-void clc (unsigned char mode)
+__attribute((always_inline)) inline void clc (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"clc ");
@@ -425,7 +425,7 @@ void clc (unsigned char mode)
     cpu.status &= ~(1UL << 0);     // clear bit carry on status processor to true
 }
 
-void cld (unsigned char mode)
+__attribute((always_inline)) inline void cld (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"cld ");
@@ -433,7 +433,7 @@ void cld (unsigned char mode)
     cpu.status &= ~(1UL << 3);     // clear bit decimal on status processor to true
 }
 
-void cli (unsigned char mode)
+__attribute((always_inline)) inline void cli (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"cli ");
@@ -441,7 +441,7 @@ void cli (unsigned char mode)
     cpu.status &= ~(1UL << 2);     // clear bit interrupt on status processor to true (interrupt disabled)
 }
 
-void clv (unsigned char mode)
+__attribute((always_inline)) inline void clv (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"clv ");
@@ -449,7 +449,7 @@ void clv (unsigned char mode)
     cpu.status &= ~(1UL << 6);     // clear bit overflow on status processor to true (interrupt disabled)
 }
 
-void cmp (unsigned char mode) 
+__attribute((always_inline)) inline void cmp (unsigned char mode) 
 {
     unsigned char tmp;
 #ifdef DEBUG
@@ -463,7 +463,7 @@ void cmp (unsigned char mode)
     if ((cpu.a - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
     
-void cpx (unsigned char mode) 
+__attribute((always_inline)) inline void cpx (unsigned char mode) 
 {
     unsigned char tmp;
 #ifdef DEBUG
@@ -477,7 +477,7 @@ void cpx (unsigned char mode)
     if ((cpu.x - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
 
-void cpy (unsigned char mode) 
+__attribute((always_inline)) inline void cpy (unsigned char mode) 
 {
     unsigned char tmp;
 #ifdef DEBUG
@@ -491,7 +491,7 @@ void cpy (unsigned char mode)
     if ((cpu.y - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
 
-void dec (unsigned char mode) 
+__attribute((always_inline)) inline void dec (unsigned char mode) 
 {
     unsigned short aux;
     unsigned short val;
@@ -507,7 +507,7 @@ void dec (unsigned char mode)
     if (val>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void dex (unsigned char mode) 
+__attribute((always_inline)) inline void dex (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"dex ");
@@ -518,7 +518,7 @@ void dex (unsigned char mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void dey (unsigned char mode) 
+__attribute((always_inline)) inline void dey (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"dey ");
@@ -529,7 +529,7 @@ void dey (unsigned char mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void eor (unsigned char mode) 
+__attribute((always_inline)) inline void eor (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"eor ");
@@ -541,7 +541,7 @@ void eor (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void inc (unsigned char mode) 
+__attribute((always_inline)) inline void inc (unsigned char mode) 
 {
     unsigned short aux;
     unsigned short val;
@@ -558,7 +558,7 @@ void inc (unsigned char mode)
     if (val>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
 }
 
-void inx (unsigned char mode) 
+__attribute((always_inline)) inline void inx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"inx ");
@@ -570,7 +570,7 @@ void inx (unsigned char mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void iny (unsigned char mode) 
+__attribute((always_inline)) inline void iny (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"iny ");
@@ -582,7 +582,7 @@ void iny (unsigned char mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void jmp (unsigned char mode) 
+__attribute((always_inline)) inline void jmp (unsigned char mode) 
 {
     unsigned char lowbyte, highbyte;
 #ifdef DEBUG
@@ -600,7 +600,7 @@ void jmp (unsigned char mode)
     }
 }
 
-void jsr (unsigned char mode) 
+__attribute((always_inline)) inline void jsr (unsigned char mode) 
 {
     unsigned char operand_l, operand_h;
     operand_l = (char) (cpu.pc+1);
@@ -618,7 +618,7 @@ void jsr (unsigned char mode)
 #endif 
 }
 
-void lda (unsigned char mode) 
+__attribute((always_inline)) inline void lda (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"lda ");
@@ -630,7 +630,7 @@ void lda (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void ldx (unsigned char mode) 
+__attribute((always_inline)) inline void ldx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"ldx ");
@@ -642,7 +642,7 @@ void ldx (unsigned char mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void ldy (unsigned char mode) 
+__attribute((always_inline)) inline void ldy (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"ldy ");
@@ -654,7 +654,7 @@ void ldy (unsigned char mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void lsr (unsigned char mode) 
+__attribute((always_inline)) inline void lsr (unsigned char mode) 
 {
     unsigned short val;
     unsigned short aux;
@@ -680,7 +680,7 @@ void lsr (unsigned char mode)
     }
 }
 
-void nop (unsigned char mode)
+__attribute((always_inline)) inline void nop (unsigned char mode)
 {
     // do nothing
 #ifdef DEBUG
@@ -689,7 +689,7 @@ void nop (unsigned char mode)
     return;
 }
 
-void ora (unsigned char mode) 
+__attribute((always_inline)) inline void ora (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"ora ");
@@ -701,7 +701,7 @@ void ora (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void pha (unsigned char mode) 
+__attribute((always_inline)) inline void pha (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"pha ");
@@ -711,7 +711,7 @@ void pha (unsigned char mode)
     else cpu.sp=0xFF;
 }
 
-void php (unsigned char mode) 
+__attribute((always_inline)) inline void php (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"php ");
@@ -721,7 +721,7 @@ void php (unsigned char mode)
     else cpu.sp=0xFF;
 }
 
-void pla (unsigned char mode) 
+__attribute((always_inline)) inline void pla (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"pla ");
@@ -734,7 +734,7 @@ void pla (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void plp (unsigned char mode) 
+__attribute((always_inline)) inline void plp (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"plp ");
@@ -744,7 +744,7 @@ void plp (unsigned char mode)
     cpu.status = readmemory(0x100+cpu.sp) & 0xEF; //unset break flag
 }
 
-void rol (unsigned char mode) 
+__attribute((always_inline)) inline void rol (unsigned char mode) 
 {
     unsigned char tmp;
     unsigned short aux;
@@ -775,7 +775,7 @@ void rol (unsigned char mode)
     }
 }
 
-void ror (unsigned char mode) 
+__attribute((always_inline)) inline void ror (unsigned char mode) 
 {
     unsigned char tmp;
     unsigned short aux;
@@ -806,7 +806,7 @@ void ror (unsigned char mode)
     }
 }
 
-void rti (unsigned char mode) 
+__attribute((always_inline)) inline void rti (unsigned char mode) 
 {
     unsigned char operand_l, operand_h;
 #ifdef DEBUG
@@ -821,7 +821,7 @@ void rti (unsigned char mode)
     cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
 }
 
-void rts (unsigned char mode) 
+__attribute((always_inline)) inline void rts (unsigned char mode) 
 {
     unsigned char operand_l, operand_h;
 #ifdef DEBUG
@@ -834,7 +834,7 @@ void rts (unsigned char mode)
     cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l)) + 1;
 }
 
-void sbc (unsigned char mode) 
+__attribute((always_inline)) inline void sbc (unsigned char mode) 
 {
     unsigned short sum; 
     unsigned char operand;
@@ -905,7 +905,7 @@ void sbc (unsigned char mode)
 
 }
 
-void sec (unsigned char mode)
+__attribute((always_inline)) inline void sec (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"sec ");
@@ -913,7 +913,7 @@ void sec (unsigned char mode)
     cpu.status |= 1UL << 0;     // set bit carry on status processor to true
 }
 
-void sed (unsigned char mode)
+__attribute((always_inline)) inline void sed (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"sed ");
@@ -921,7 +921,7 @@ void sed (unsigned char mode)
     cpu.status |= 1UL << 3;     // set bit decimal on status processor to true
 }
 
-void sei (unsigned char mode)
+__attribute((always_inline)) inline void sei (unsigned char mode)
 {
 #ifdef DEBUG
     fprintf(stderr,"sei ");
@@ -929,7 +929,7 @@ void sei (unsigned char mode)
     cpu.status |= 1UL << 2;     // set bit interrupt on status processor to true (interrupt disabled)
 }
 
-void sta (unsigned char mode) 
+__attribute((always_inline)) inline void sta (unsigned char mode) 
 {
     int addr;
 #ifdef DEBUG
@@ -939,7 +939,7 @@ void sta (unsigned char mode)
 	writememory(addr, cpu.a);
 }
 
-void stx (unsigned char mode) 
+__attribute((always_inline)) inline void stx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"stx ");
@@ -947,7 +947,7 @@ void stx (unsigned char mode)
 	writememory(get_address(mode), cpu.x);
 }
 
-void sty (unsigned char mode) 
+__attribute((always_inline)) inline void sty (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"sty ");
@@ -955,7 +955,7 @@ void sty (unsigned char mode)
 	writememory(get_address(mode), cpu.y);
 }
 
-void tax (unsigned char mode) 
+__attribute((always_inline)) inline void tax (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tax ");
@@ -965,7 +965,7 @@ void tax (unsigned char mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void tay (unsigned char mode) 
+__attribute((always_inline)) inline void tay (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tay ");
@@ -975,7 +975,7 @@ void tay (unsigned char mode)
     if (cpu.y>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void tsx (unsigned char mode) 
+__attribute((always_inline)) inline void tsx (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tsx ");
@@ -985,7 +985,7 @@ void tsx (unsigned char mode)
     if (cpu.x>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void txa (unsigned char mode) 
+__attribute((always_inline)) inline void txa (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"txa ");
@@ -995,7 +995,7 @@ void txa (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
-void txs (unsigned char mode) 
+__attribute((always_inline)) inline void txs (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"txs ");
@@ -1003,7 +1003,7 @@ void txs (unsigned char mode)
     cpu.sp = cpu.x;
 }
 
-void tya (unsigned char mode) 
+__attribute((always_inline)) inline void tya (unsigned char mode) 
 {
 #ifdef DEBUG
     fprintf(stderr,"tya ");
