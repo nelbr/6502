@@ -8,7 +8,7 @@ all: lib6502.a test6502
 lib6502.a: 6502.o
 	ar rc lib6502.a 6502.o 
 
-6502.o: 6502.c
+6502.o: 6502.c 6502.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 test6502: test6502.o lib6502.a

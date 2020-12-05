@@ -19,7 +19,8 @@
 #ifndef MOS_H
 #define MOS_H
 
-#define DEBUG 0
+// #define DEBUG 1
+
 #define STATUS_TO_BINARY_PATTERN "     Ne %c Ov %c NA %c Br %c De %c In %c Ze %c Ca %c\n"
 #define STATUS_TO_BINARY(byte)  \
   (byte & 0x80 ? '1' : '0'), \
