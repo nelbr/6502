@@ -83,14 +83,32 @@ void writememory(unsigned short address, unsigned char value)
 int main()
 {
     struct timeval start,stop;
+    long seconds, micros; 
+
+    // 
+    // Load test code into memory, exit program if file does can't be loaded
+    //
 	if (rominit()!=0) {
         printf( "Could not open binary test file\n" ) ;
         printf( "This program requires the file 6502_functional_test.bin (see README for link to download)\n");
         return 0;
     }
+
+    //
+    // Initialize cpu registers
+    //
     boot();
     printf ("Running test, please wait a bit\n");
+
+    //
+    // Record start time
+    //
     gettimeofday(&start, NULL);
+
+    //
+    // Main loop, sequentially execute commands pointed by the program counter
+    // register in the CPU. 
+    //
     while (processcommand()==0) 
     {
         // 
@@ -101,6 +119,7 @@ int main()
         if (used) fprintf (stderr, " A=%02X, X=%02X, Y=%02X, SP=%02X, PC=%02X, STATUS=%02X", cpu.a, cpu.x, cpu.y, cpu.sp, cpu.pc, cpu.status); 
         else fprintf (stderr, "      A=%02X, X=%02X, Y=%02X, SP=%02X, PC=%02X, STATUS=%02X", cpu.a, cpu.x, cpu.y, cpu.sp, cpu.pc, cpu.status); 
         fprintf(stderr, STATUS_TO_BINARY_PATTERN, STATUS_TO_BINARY(cpu.status));
+        used=0;
         #endif 
 
         //
@@ -108,16 +127,31 @@ int main()
         // Can be useful for finding our which test is failing, but increases execution time
         //
         // printf ("Teste numero %2X %2X %2X\n", memory[0x200], memory[0x203], memory[0x204]);
-        used=0;
+
+        // 
+        // When we reach test F0 we have finished the test suite
+        //
         if (memory[0x200]==0xF0) break;
     }
+
+    // 
+    // Record test completion time and calculate time spent in micro seconds
+    //
     gettimeofday(&stop, NULL);
-    long seconds = (stop.tv_sec - start.tv_sec);
-    long micros = ((seconds * 1000000) + stop.tv_usec) - start.tv_usec;
-    printf ("Test completed successfully in %ld us\n",micros);
+    seconds = (stop.tv_sec - start.tv_sec);
+    micros = ((seconds * 1000000) + stop.tv_usec) - start.tv_usec;
+
+    //
+    // Output results
+    //
     printf ("Number of cycles spent = %ld\n", cpu.cycles);
+    printf ("Test completed successfully in %ld us\n",micros);
     printf ("Estimated CPU speed in this computer = %ld Mhz\n", (cpu.cycles/micros));
     // printf ("BREAK A=%02X, X=%02X, Y=%02X, SP=%02X, PC=%04X, STATUS=%02X\n", cpu.a, cpu.x, cpu.y, cpu.sp, cpu.pc, cpu.status); 
+    
+    //
+    // End we are done
+    //
     return 0;
 }
 	
