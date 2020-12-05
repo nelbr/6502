@@ -1,6 +1,25 @@
+//
+//    This file is part of lib6502.
+//
+//    lib6502 is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    lib6502 is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Nelson Luiz Waissman - Summer 2020
+//
 #ifndef MOS_H
 #define MOS_H
 
+#define DEBUG 0
 #define STATUS_TO_BINARY_PATTERN "     Ne %c Ov %c NA %c Br %c De %c In %c Ze %c Ca %c\n"
 #define STATUS_TO_BINARY(byte)  \
   (byte & 0x80 ? '1' : '0'), \
@@ -21,6 +40,9 @@ typedef struct microprocessor {
 	unsigned char status;
     unsigned long cycles;
 } microprocessor;
+
+microprocessor cpu;
+unsigned int used;
 
 unsigned char fetchmemory();
 int processcommand();

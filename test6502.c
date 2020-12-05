@@ -11,23 +11,13 @@
 //
 // https://github.com/Klaus2m5/6502_65C02_functional_tests/tree/master/bin_files
 //
-// The test never finishes, so there is probably still some emulation
-// bug in my code. Please let me know if you find anything.
-//
 // nelbr - June/July 2020
 //
-#include <time.h>
-#include <sys/time.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <unistd.h>
+#include <sys/time.h>
 #include "6502.h"
 
-microprocessor cpu;
 unsigned char memory[65536];
-int used=0;
 
 //
 // Read binary file in memory

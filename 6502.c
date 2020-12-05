@@ -5,15 +5,26 @@
 //
 // Maybe a long term goal of extending this into an apple 2 emulator
 //
-// Nelson Luiz Waissman - Summer 2020
+//    This file is part of lib6502.
 //
-#include <time.h>
+//    lib6502 is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    lib6502 is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+//
+// nelbr - Summer 2020
+//
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <dirent.h>
+#include "6502.h"
 
 #define IMMEDIATE 1
 #define ZERO_PAGE 2
@@ -29,6 +40,8 @@
 #define INDIRECT 12
 #define RELATIVE 13
 
+/*
+ 
 #define STATUS_TO_BINARY_PATTERN "     Ne %c Ov %c NA %c Br %c De %c In %c Ze %c Ca %c\n"
 #define STATUS_TO_BINARY(byte)  \
   (byte & 0x80 ? '1' : '0'), \
@@ -39,8 +52,6 @@
   (byte & 0x04 ? '1' : '0'), \
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0')
-
-// #define DEBUG 
 
 typedef struct microprocessor {
 	unsigned char a;
@@ -54,6 +65,8 @@ typedef struct microprocessor {
 
 microprocessor cpu;
 unsigned char used; 
+
+*/
 
 // 
 // Read the next opcode from current pc value
