@@ -11,9 +11,8 @@ I have written a small test program that loads the famous Klaus2m5 functional te
 in memory and then runs it. It completes successfully in around 1s on my computer. 
 
 For now, this library only emulates original documented 6502 code. It does not emulate 
-(yet) 65C02 opcodes. Also, non-documented opcodes are treated as NOP. Cycle counting 
-is not yet perfect, as we don't detect cases where operands spill out of a page (which
-should consume an extra cycle for some commands). 
+(yet) 65C02 opcodes. Also, non-documented opcodes are treated as NOP. There is not
+external interrupt routines yet, though brk and rti are implemented. 
 
 The Makefile will compile and create a static library, and then it will compile 
 and link the test program. In order to run it, you need to place the binary test 
@@ -32,7 +31,7 @@ GLOBAL VARIABLES
 This library define a struct to be used by a single global variable called cpu of
 type microprocessor, which is a struct (defined in 6502.h) which contains all the
 registers of the cpu and it can be accessed by the user code. 
-The use of this global variables is important for speed, as it reduces the need of
+The use of this global variable is important for speed, as it reduces the need of
 stack parameter passing between the user code and the library functions. 
 
 
@@ -55,7 +54,7 @@ accessing.
 
 LIBRARY FUNCTIONS 
 
-The library has only 2 externally accessible functions: 
+The library has only one externally accessible function: 
 
 int processcommand();
 
@@ -67,12 +66,6 @@ cycles taken by the command.
 For now it always return a zero. 
 
   
-unsigned char fetchmemory();
-
-This function takes no parameters. It returns the value pointed by the current
-amount at the PC register. It will then increase the PC register automatically. 
-
-
 
 To use my library on your own code, you need to: 
 
