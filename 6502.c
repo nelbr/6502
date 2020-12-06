@@ -40,6 +40,8 @@
 #define INDIRECT 12
 #define RELATIVE 13
 
+unsigned char bordercross;
+
 // 
 // Read the next opcode from current pc value
 //
@@ -89,12 +91,14 @@ __attribute((always_inline)) inline unsigned short get_address(unsigned char mod
 	    operand_l = fetchmemory();
 	    operand_h = fetchmemory();
 	    address = (unsigned short) ( operand_h << 8 | operand_l ) + cpu.x;
+        if (((address & 0xFF00)>>8) != operand_h) bordercross=1; 
 	    break; 
 
 	case ABSOLUTE_Y:
 	    operand_l = fetchmemory();
 	    operand_h = fetchmemory();
 	    address = (unsigned short) ( operand_h << 8 | operand_l ) + cpu.y;
+        if (((address & 0xFF00)>>8) != operand_h) bordercross=1; 
 	    break; 
 
     case INDIRECT:
@@ -126,8 +130,13 @@ __attribute((always_inline)) inline unsigned short get_address(unsigned char mod
 	    operand = fetchmemory();
 	    address = (unsigned short) operand;
 	    operand_l = readmemory(address);
-	    if (address<0XFF) operand_h = readmemory(address+1);
-	    else operand_h = readmemory(0x0000);
+	    if (address<0XFF) {
+            operand_h = readmemory(address+1);
+        }
+	    else {
+            operand_h = readmemory(0x0000);
+            bordercross=1;
+        }
 	    address = (unsigned short) ( operand_h << 8 | operand_l ) + cpu.y;
 	    break; 
 	}
@@ -1003,7 +1012,6 @@ __attribute((always_inline)) inline void tya (unsigned char mode)
 //
 int processcommand()
 { 
-    unsigned char command;
     const unsigned char length[256]= { 7, 6, 2, 2, 2, 3, 5, 2, 3, 2, 2, 2, 2, 4, 6, 2,  // 00
                                        2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // 10
                                        6, 6, 2, 2, 3, 3, 5, 2, 4, 2, 2, 2, 4, 4, 6, 2,  // 20
@@ -1020,7 +1028,9 @@ int processcommand()
                                        2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // D0
                                        2, 6, 2, 2, 3, 3, 5, 2, 2, 2, 2, 2, 4, 4, 6, 2,  // E0
                                        2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2 };// F0
+    unsigned char command;
 
+    bordercross = 0;
     command = fetchmemory();
     cpu.cycles += length[command];
 
@@ -1034,19 +1044,19 @@ int processcommand()
         case 0x65: adc(ZERO_PAGE); break;
         case 0x75: adc(ZERO_PAGE_X); break;
         case 0x6D: adc(ABSOLUTE); break;
-        case 0x7D: adc(ABSOLUTE_X); break;
-        case 0x79: adc(ABSOLUTE_Y); break;
+        case 0x7D: adc(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0x79: adc(ABSOLUTE_Y); cpu.cycles += bordercross; break;
         case 0x61: adc(INDIRECT_X); break;
-        case 0x71: adc(INDIRECT_Y); break;
+        case 0x71: adc(INDIRECT_Y); cpu.cycles += bordercross; break;
 
         case 0x29: fand(IMMEDIATE); break;
         case 0x25: fand(ZERO_PAGE); break;
         case 0x35: fand(ZERO_PAGE_X); break;
         case 0x2D: fand(ABSOLUTE); break;
-        case 0x3D: fand(ABSOLUTE_X); break;
-        case 0x39: fand(ABSOLUTE_Y); break;
+        case 0x3D: fand(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0x39: fand(ABSOLUTE_Y); cpu.cycles += bordercross; break;
         case 0x21: fand(INDIRECT_X); break;
-        case 0x31: fand(INDIRECT_Y); break;
+        case 0x31: fand(INDIRECT_Y); cpu.cycles += bordercross; break;
         
         case 0x0A: asl(ACCUMULATOR); break;
         case 0x06: asl(ZERO_PAGE); break;
@@ -1077,10 +1087,10 @@ int processcommand()
         case 0xC5: cmp(ZERO_PAGE); break;
         case 0xD5: cmp(ZERO_PAGE_X); break;
         case 0xCD: cmp(ABSOLUTE); break;
-        case 0xDD: cmp(ABSOLUTE_X); break;
-        case 0xD9: cmp(ABSOLUTE_Y); break;
+        case 0xDD: cmp(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0xD9: cmp(ABSOLUTE_Y); cpu.cycles += bordercross; break;
         case 0xC1: cmp(INDIRECT_X); break;
-        case 0xD1: cmp(INDIRECT_Y); break;
+        case 0xD1: cmp(INDIRECT_Y); cpu.cycles += bordercross; break;
 
         case 0xE0: cpx(IMMEDIATE); break;
         case 0xE4: cpx(ZERO_PAGE); break;
@@ -1102,10 +1112,10 @@ int processcommand()
         case 0x45: eor(ZERO_PAGE); break;
         case 0x55: eor(ZERO_PAGE_X); break;
         case 0x4D: eor(ABSOLUTE); break;
-        case 0x5D: eor(ABSOLUTE_X); break;
-        case 0x59: eor(ABSOLUTE_Y); break;
+        case 0x5D: eor(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0x59: eor(ABSOLUTE_Y); cpu.cycles += bordercross; break;
         case 0x41: eor(INDIRECT_X); break;
-        case 0x51: eor(INDIRECT_Y); break;
+        case 0x51: eor(INDIRECT_Y); cpu.cycles += bordercross; break;
 
         case 0xE6: inc(ZERO_PAGE); break;
         case 0xF6: inc(ZERO_PAGE_X); break;
@@ -1124,22 +1134,22 @@ int processcommand()
         case 0xA5: lda(ZERO_PAGE); break;
         case 0xA9: lda(IMMEDIATE); break;
         case 0xAD: lda(ABSOLUTE); break;
-        case 0xB1: lda(INDIRECT_Y); break;
+        case 0xB1: lda(INDIRECT_Y); cpu.cycles += bordercross; break;
         case 0xB5: lda(ZERO_PAGE_X); break;
-        case 0xBD: lda(ABSOLUTE_X); break;
-        case 0xB9: lda(ABSOLUTE_Y); break;
+        case 0xBD: lda(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0xB9: lda(ABSOLUTE_Y); cpu.cycles += bordercross; break;
 
         case 0xA2: ldx(IMMEDIATE); break;
         case 0xA6: ldx(ZERO_PAGE); break;
         case 0xB6: ldx(ZERO_PAGE_Y); break;
         case 0xAE: ldx(ABSOLUTE); break;
-        case 0xBE: ldx(ABSOLUTE_Y); break;
+        case 0xBE: ldx(ABSOLUTE_Y); cpu.cycles += bordercross; break;
 
         case 0xA0: ldy(IMMEDIATE); break;
         case 0xA4: ldy(ZERO_PAGE); break;
         case 0xB4: ldy(ZERO_PAGE_X); break;
         case 0xAC: ldy(ABSOLUTE); break;
-        case 0xBC: ldy(ABSOLUTE_X); break;
+        case 0xBC: ldy(ABSOLUTE_X); cpu.cycles += bordercross; break;
 
         case 0x4A: lsr(ACCUMULATOR); break;
         case 0x46: lsr(ZERO_PAGE); break;
@@ -1153,10 +1163,10 @@ int processcommand()
         case 0x05: ora(ZERO_PAGE); break;
         case 0x15: ora(ZERO_PAGE_X); break;
         case 0x0D: ora(ABSOLUTE); break;
-        case 0x1D: ora(ABSOLUTE_X); break;
-        case 0x19: ora(ABSOLUTE_Y); break;
+        case 0x1D: ora(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0x19: ora(ABSOLUTE_Y); cpu.cycles += bordercross; break;
         case 0x01: ora(INDIRECT_X); break;
-        case 0x11: ora(INDIRECT_Y); break;
+        case 0x11: ora(INDIRECT_Y); cpu.cycles += bordercross; break;
         
         case 0x48: pha(IMPLIED); break;
         case 0x08: php(IMPLIED); break;
@@ -1183,10 +1193,10 @@ int processcommand()
         case 0xE5: sbc(ZERO_PAGE); break;
         case 0xF5: sbc(ZERO_PAGE_X); break;
         case 0xED: sbc(ABSOLUTE); break;
-        case 0xFD: sbc(ABSOLUTE_X); break;
-        case 0xF9: sbc(ABSOLUTE_Y); break;
+        case 0xFD: sbc(ABSOLUTE_X); cpu.cycles += bordercross; break;
+        case 0xF9: sbc(ABSOLUTE_Y); cpu.cycles += bordercross; break;
         case 0xE1: sbc(INDIRECT_X); break;
-        case 0xF1: sbc(INDIRECT_Y); break;
+        case 0xF1: sbc(INDIRECT_Y); cpu.cycles += bordercross; break;
 
         case 0x38: sec(IMPLIED); break;
         case 0xF8: sed(IMPLIED); break;

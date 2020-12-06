@@ -46,7 +46,6 @@ typedef struct microprocessor {
 microprocessor cpu;
 unsigned int used;
 
-unsigned char fetchmemory();
 int processcommand();
 extern unsigned char readmemory(unsigned short);
 extern void writememory(unsigned short, unsigned char);
