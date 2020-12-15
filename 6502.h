@@ -47,6 +47,8 @@ microprocessor cpu;
 unsigned int used;
 
 int processcommand();
+void interrupt();
+void nmi();
 extern unsigned char readmemory(unsigned short);
 extern void writememory(unsigned short, unsigned char);
 

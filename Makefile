@@ -1,7 +1,7 @@
 CXX = gcc
 
 CXXFLAGS = -Wall -c -O2
-LDFLAGS = -L. -l6502 -O2
+LDFLAGS = -L. -l6502 -O2 
 
 all: lib6502.a test6502
 

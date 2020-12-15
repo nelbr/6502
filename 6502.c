@@ -369,11 +369,13 @@ __attribute((always_inline)) inline void fbrk (unsigned char mode)
     cpu.sp--;
     writememory(0x100+cpu.sp, cpu.status | 0x30);  // set bits break and reserved to true on the stack copy of the status register
     cpu.sp--;
+    cpu.status |= 0x04;
     operand_l = readmemory(0xFFFE);
     operand_h = readmemory(0xFFFF);
     cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
     cpu.status |= 0x04;
 }
+
 
 __attribute((always_inline)) inline void bvc (unsigned char mode) 
 {
@@ -1231,3 +1233,46 @@ int processcommand()
     return 0;
 }
 
+void interrupt ()
+{
+    unsigned char operand_l, operand_h;
+#ifdef DEBUG
+    fprintf(stderr,"External Interrupt ");
+#endif 
+    if (!(cpu.status&0x04)) {
+        operand_l = (char) (cpu.pc+1);
+        operand_h = (char) ((cpu.pc+1)>>8);
+        writememory(0x100+cpu.sp, operand_h);
+        cpu.sp--;
+        writememory(0x100+cpu.sp, operand_l);
+        cpu.sp--;
+        writememory(0x100+cpu.sp, cpu.status | 0x20);  // set bits break and reserved to true on the stack copy of the status register
+        cpu.sp--;
+        cpu.status |= 0x04;
+        operand_l = readmemory(0xFFFE);
+        operand_h = readmemory(0xFFFF);
+        cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
+        cpu.status |= 0x04;
+    }
+}
+
+void nmi ()
+{
+    unsigned char operand_l, operand_h;
+#ifdef DEBUG
+    fprintf(stderr,"External Non-Maskable Interrupt ");
+#endif 
+    operand_l = (char) (cpu.pc+1);
+    operand_h = (char) ((cpu.pc+1)>>8);
+    writememory(0x100+cpu.sp, operand_h);
+    cpu.sp--;
+    writememory(0x100+cpu.sp, operand_l);
+    cpu.sp--;
+    writememory(0x100+cpu.sp, cpu.status | 0x20);  // set bits break and reserved to true on the stack copy of the status register
+    cpu.sp--;
+    cpu.status |= 0x04;
+    operand_l = readmemory(0xFFFA);
+    operand_h = readmemory(0xFFFB);
+    cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
+    cpu.status |= 0x04;
+}

@@ -11,8 +11,7 @@ I have written a small test program that loads the famous Klaus2m5 functional te
 in memory and then runs it. It completes successfully in around 1s on my computer. 
 
 For now, this library only emulates original documented 6502 code. It does not emulate 
-(yet) 65C02 opcodes. Also, non-documented opcodes are treated as NOP. There is not
-external interrupt routines yet, though brk and rti are implemented. 
+(yet) 65C02 opcodes. Also, non-documented opcodes are treated as NOP. 
 
 The Makefile will compile and create a static library, and then it will compile 
 and link the test program. In order to run it, you need to place the binary test 
@@ -54,7 +53,7 @@ accessing.
 
 LIBRARY FUNCTIONS 
 
-The library has only one externally accessible function: 
+The library now has three externally accessible functions: 
 
 int processcommand();
 
@@ -65,6 +64,19 @@ cycles taken by the command.
 
 For now it always return a zero. 
 
+void interrupt();
+
+This function generates a HW interrupt if the interrupt flag on the status
+register is not set. It will push the current program counter and the status
+register into the stack and then execute the opcode in the  address pointed by
+$FFFE/$FFFF
+
+void nmi();
+
+This function generates a non-maskable interrupt independent of the value
+of the interrupt flag in the status register. It will push the current 
+program counter and the status register into the stack and then execute
+the opcode in the address pointed by $FFFA/$FFFB
   
 
 To use my library on your own code, you need to: 
