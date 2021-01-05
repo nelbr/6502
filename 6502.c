@@ -45,7 +45,7 @@ unsigned char bordercross;
 // 
 // Read the next opcode from current pc value
 //
-unsigned char fetchmemory()
+__attribute((always_inline)) inline unsigned char fetchmemory()
 {
     unsigned char result;
     result = readmemory(cpu.pc);
