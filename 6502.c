@@ -121,7 +121,7 @@ __attribute((always_inline)) inline unsigned short get_address(unsigned char mod
 	    address = (unsigned short) operand + cpu.x;
 	    if (address>0xFF) address = address - 0x100;
 	    operand_l = readmemory(address);
-	    if (address<0XFF) operand_h = readmemory(address+1);
+	    if (address<0xFF) operand_h = readmemory(address+1);
 	    else operand_h = readmemory(0x0000);
 	    address = (unsigned short) ( operand_h << 8 | operand_l );
 	    break; 
@@ -130,14 +130,10 @@ __attribute((always_inline)) inline unsigned short get_address(unsigned char mod
 	    operand = fetchmemory();
 	    address = (unsigned short) operand;
 	    operand_l = readmemory(address);
-	    if (address<0XFF) {
-            operand_h = readmemory(address+1);
-        }
-	    else {
-            operand_h = readmemory(0x0000);
-            bordercross=1;
-        }
+	    if (address<0xFF) operand_h = readmemory(address+1);
+	    else operand_h = readmemory(0x0000);
 	    address = (unsigned short) ( operand_h << 8 | operand_l ) + cpu.y;
+        if (((address & 0xFF00)>>8) != operand_h) bordercross=1; 
 	    break; 
 	}
 #ifdef DEBUG
@@ -236,55 +232,55 @@ __attribute((always_inline)) inline void asl (unsigned char mode)
 __attribute((always_inline)) inline void bcc (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bcc ");
 #endif 
     branch= fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (!(cpu.status & (1UL << 0)))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void bcs (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bcs ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (cpu.status & (1UL << 0))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void beq (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"beq ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (cpu.status & (1UL << 1))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void bit (unsigned char mode) 
@@ -304,55 +300,55 @@ __attribute((always_inline)) inline void bit (unsigned char mode)
 __attribute((always_inline)) inline void bmi (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bmi ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (cpu.status & (1UL << 7))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void bne (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bne ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (!(cpu.status & (1UL << 1)))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void bpl (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bpl ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (!(cpu.status & (1UL << 7)))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void fbrk (unsigned char mode)
@@ -380,37 +376,37 @@ __attribute((always_inline)) inline void fbrk (unsigned char mode)
 __attribute((always_inline)) inline void bvc (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bvc ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if (!(cpu.status & (1UL << 6)))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void bvs (unsigned char mode) 
 {
     unsigned char branch;
-    unsigned char currpage;
+    unsigned short currpage;
 #ifdef DEBUG
     fprintf(stderr,"bvs ");
 #endif 
     branch=fetchmemory();
-    currpage = (cpu.pc & 0xF0) >> 2;
+    currpage = (cpu.pc & 0xFF00);
     if ((cpu.status & (1UL << 6)))
     {
        if (branch>=0x80) cpu.pc -= (0x100 - branch);
        else              cpu.pc += branch;
        cpu.cycles += 1;
     }
-    if (((cpu.pc && 0xF0) >> 2) != currpage) cpu.cycles += 1;
+    if ((cpu.pc & 0xFF00) != currpage) cpu.cycles += 1;
 }
 
 __attribute((always_inline)) inline void clc (unsigned char mode)

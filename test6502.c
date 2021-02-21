@@ -129,7 +129,7 @@ int main()
     //
     gettimeofday(&stop, NULL);
     seconds = (stop.tv_sec - start.tv_sec);
-    micros = ((seconds * 1000000) + stop.tv_usec) - start.tv_usec;
+    micros = (seconds * 1000000) + stop.tv_usec - start.tv_usec;
 
     //
     // Output results
