@@ -110,9 +110,9 @@ __attribute((always_inline)) inline unsigned short get_address(unsigned char mod
         // fixes this bug. The implementation below follows the 6502 behaviour.
         // 
         // Note: The bug only occurs with the jmp opcode. 
-        operand_l = readmemory(address);
-        if (operand_l == 0xFF) operand_h = readmemory(address+1-256);
+        if (operand_l == 0xFF) operand_h = readmemory(address-255);
         else operand_h = readmemory(address+1);
+        operand_l = readmemory(address);
 	    address = (unsigned short) ( operand_h << 8 | operand_l );
         break;
 
@@ -368,7 +368,7 @@ __attribute((always_inline)) inline void fbrk (unsigned char mode)
     cpu.status |= 0x04;
     operand_l = readmemory(0xFFFE);
     operand_h = readmemory(0xFFFF);
-    cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
+    cpu.pc = (operand_h << 8) + operand_l;
     cpu.status |= 0x04;
 }
 
