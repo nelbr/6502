@@ -2,6 +2,17 @@ Attention this in a "WORK IN PROGRESS" 6502 library. More documentation
 to follow
 
 
+WHAT'S NEW 
+
+The library will now emulate most of the undocummented opcodes, though the code has
+not yet been tested. Some unstable codes are still not emulated. 
+
+Minor fixes on brk / rti code. Removed duplicate setting of interrupt flag on brk, 
+and fixed mask for clearing bits 4 and 5 of pulled status on rti. 
+
+Removed typdef from cpu struct definition as it was not needed. 
+
+
 INTRODUCTION
 
 I have a working 6502 emulator written in C under LINUX (I am using MINT, but any
@@ -10,8 +21,9 @@ distro should be able to compile).
 I have written a small test program that loads the famous Klaus2m5 functional tests
 in memory and then runs it. It completes successfully in around 1s on my computer. 
 
-For now, this library only emulates original documented 6502 code. It does not emulate 
-(yet) 65C02 opcodes. Also, non-documented opcodes are treated as NOP. 
+The library will now emulate most of the undocummented opcodes, though the code has
+not yet been tested. Some unstable codes are still not emulated. This library does 
+not emulate (yet) 65C02 opcodes. 
 
 The Makefile will compile and create a static library, and then it will compile 
 and link the test program. In order to run it, you need to place the binary test 

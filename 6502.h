@@ -33,7 +33,7 @@
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0')
 
-typedef struct microprocessor {
+struct microprocessor {
 	unsigned char a;
 	unsigned char x;
 	unsigned char y;
@@ -41,9 +41,8 @@ typedef struct microprocessor {
     unsigned short pc;
 	unsigned char status;
     unsigned long cycles;
-} microprocessor;
+} cpu;
 
-microprocessor cpu;
 unsigned int used;
 
 int processcommand();

@@ -18,7 +18,7 @@
 //    GNU General Public License for more details.
 //
 //    You should have received a copy of the GNU General Public License
-//    along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+//    along with lib6502.  If not, see <https://www.gnu.org/licenses/>.
 //
 // nelbr - Summer 2020
 //
@@ -39,6 +39,8 @@
 #define ACCUMULATOR 11
 #define INDIRECT 12
 #define RELATIVE 13
+
+// #define DEBUG
 
 unsigned char bordercross;
 
@@ -194,9 +196,8 @@ __attribute((always_inline)) inline void fand (unsigned char mode)
 #ifdef DEBUG
     fprintf(stderr,"and ");
 #endif 
-    if (mode==IMMEDIATE) cpu.a = cpu.a & fetchmemory();
-    else cpu.a = cpu.a & readmemory(get_address(mode));
-
+    if (mode==IMMEDIATE) cpu.a &= fetchmemory();
+    else cpu.a &= readmemory(get_address(mode));
     if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
@@ -369,7 +370,6 @@ __attribute((always_inline)) inline void fbrk (unsigned char mode)
     operand_l = readmemory(0xFFFE);
     operand_h = readmemory(0xFFFF);
     cpu.pc = (operand_h << 8) + operand_l;
-    cpu.status |= 0x04;
 }
 
 
@@ -674,10 +674,14 @@ __attribute((always_inline)) inline void lsr (unsigned char mode)
 
 __attribute((always_inline)) inline void nop (unsigned char mode)
 {
+    unsigned char val;
+    unsigned short aux;
     // do nothing
 #ifdef DEBUG
     fprintf(stderr,"nop ");
 #endif 
+    if (mode==IMMEDIATE) val=fetchmemory();
+    else if (mode!=IMPLIED) aux=get_address(mode);
     return;
 }
 
@@ -805,7 +809,7 @@ __attribute((always_inline)) inline void rti (unsigned char mode)
     fprintf(stderr,"rti ");
 #endif
     cpu.sp++;
-    cpu.status = readmemory(0x100+cpu.sp) & 0xEF; // clear bits 4 and 5 when restablishing the status register
+    cpu.status = readmemory(0x100+cpu.sp) & 0xCF; // clear bits 4 and 5 when restablishing the status register
     cpu.sp++;
     operand_l = readmemory(0x100+cpu.sp);
     cpu.sp++;
@@ -1005,27 +1009,203 @@ __attribute((always_inline)) inline void tya (unsigned char mode)
     if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
+//
+// Undocumented opcodes are required for better emulation of older software
+//
+
+__attribute((always_inline)) inline void anc (unsigned char mode) {
+    printf ("ANC opcode detected\n");
+    cpu.a &= fetchmemory();
+    if (cpu.a>=0x80) cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0);  // set bit carry on status processor
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+__attribute((always_inline)) inline void sax (unsigned char mode) {
+    printf ("SAX opcode detected\n");
+    writememory(get_address(mode),  cpu.a & cpu.x );
+}
+
+__attribute((always_inline)) inline void lax (unsigned char mode) {
+#ifdef DEBUG
+    fprintf(stderr,"lax ");
+#endif 
+    if (mode==IMMEDIATE) {
+        fetchmemory();
+        printf ("LAX opcode detected (unstable, not implemented)\n");
+    }
+    else 
+    {
+        cpu.a = readmemory(get_address(mode));
+        cpu.x = cpu.a;
+        if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+        if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+    }
+}
+
+__attribute((always_inline)) inline void sre (unsigned char mode)
+{
+    int addr;
+    unsigned char value;
+    printf ("SRE opcode detected\n");
+    value = readmemory(addr = get_address(mode));
+    cpu.status = (cpu.status & ~(1UL << 0)) | (value & 1UL << 0); // set bit carry on status processor to value in memory bit zero
+    writememory(addr, value>>1);
+    cpu.a ^= value;
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+__attribute((always_inline)) inline void slo (unsigned char mode) 
+{
+    unsigned short aux;
+    unsigned short val;
+    printf ("SLO opcode detected\n");
+    aux = get_address(mode);
+    val = readmemory(aux);
+    if (val>=0x80) cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0); // set bit carry on status processor to true
+//    val &= ~(1UL << 7);                                                    // set bit 7 of input to 0
+    val = val << 1;
+    writememory ( aux, val );
+    cpu.a |= val;
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+__attribute((always_inline)) inline void rla (unsigned char mode) 
+{
+    unsigned char tmp;
+    unsigned short aux;
+    unsigned char val;
+    printf ("RLA opcode detected\n");
+    aux = get_address(mode);
+    val = readmemory(aux);
+    tmp = cpu.status;
+    cpu.status = (cpu.status & ~(1UL << 0)) | ((val & (1UL << 7)) >> 7); // set bit carry on status processor to bit 7 of memory
+    val = val << 1;       
+    val = (val & ~(1UL << 0)) | (tmp & (1UL << 0)); // set bit zero on memory to previous carry
+    writememory(aux, val); 
+    cpu.a &= val;
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+__attribute((always_inline)) inline void dcp (unsigned char mode) {
+    unsigned char tmp;
+    unsigned short address;
+    printf ("DCP opcode detected\n");
+    tmp = readmemory(address=get_address(mode));
+    tmp--;
+    writememory(address, tmp);
+    if (cpu.a >= tmp) cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0);               // set bit carry on status processor to true
+    if (cpu.a == tmp) cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);               // set bit zero on status processor to true
+    if ((cpu.a - tmp) & (1UL << 7)) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); // set bit negative on status processor to true
+}
+
+__attribute((always_inline)) inline void alr (unsigned char mode) {
+    printf ("ALR opcode detected\n");
+    cpu.a &= fetchmemory(); 
+    cpu.status = (cpu.status & ~(1UL << 0)) | (cpu.a & 1UL << 0); // set bit carry on status processor to accumulator bit zero
+    cpu.a = cpu.a >> 1;
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+__attribute((always_inline)) inline void las (unsigned char mode) {
+    printf ("LAS opcode detected\n");
+    cpu.a = readmemory(get_address(mode)) & cpu.status;
+    cpu.x = cpu.a;
+    cpu.status = cpu.a;
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+__attribute((always_inline)) inline void arr (unsigned char mode) {
+    unsigned char operand, aux; 
+    printf ("ARR opcode detected\n");
+    operand = fetchmemory();
+    cpu.a &= operand;
+    aux = cpu.status >> 7;
+    switch (aux) {
+        case 0x00 : 
+            cpu.status &= ~(1UL << 0);
+            cpu.status &= ~(1UL << 6);
+            break;
+        case 0x01 : 
+            cpu.status &= ~(1UL << 0);
+            cpu.status |= 1UL << 6;
+            break;
+        case 0x10 : 
+            cpu.status |= 1UL << 0;
+            cpu.status |= 1UL << 6;
+            break;
+        case 0x11 : 
+            cpu.status |= 1UL << 0;
+            cpu.status &= ~(1UL << 6);
+            break;
+    }
+    cpu.a = (cpu.a >> 1);
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+}
+
+
+__attribute((always_inline)) inline void sbx (unsigned char mode) {
+    printf ("SBX opcode detected (not yet implemented)\n");
+    fetchmemory();
+}
+
+__attribute((always_inline)) inline void sha (unsigned char mode) {
+    printf ("SHA opcode detected (unstable, not implemented)\n");
+}
+
+__attribute((always_inline)) inline void shx (unsigned char mode) {
+    printf ("SHX opcode detected (unstable, not implemented)\n");
+}
+
+__attribute((always_inline)) inline void shy (unsigned char mode) {
+    printf ("SHY opcode detected (unstable, not implemented)\n");
+}
+
+__attribute((always_inline)) inline void tas (unsigned char mode) {
+    printf ("TAS opcode detected (unstable, not implemented)\n");
+}
+
+__attribute((always_inline)) inline void ane (unsigned char mode) {
+    printf ("ANE opcode detected (unstable, not implemented)\n");
+    fetchmemory();
+}
+
+/*
+__attribute((always_inline)) inline void rra (unsigned char mode)
+__attribute((always_inline)) inline void isc (unsigned char mode)
+__attribute((always_inline)) inline void skb (unsigned char mode)
+__attribute((always_inline)) inline void skw (unsigned char mode)
+*/
+
+
 // 
 // Switch case to execute CPU command based on opcode
 //
 int processcommand()
 { 
-    const unsigned char length[256]= { 7, 6, 2, 2, 2, 3, 5, 2, 3, 2, 2, 2, 2, 4, 6, 2,  // 00
-                                       2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // 10
-                                       6, 6, 2, 2, 3, 3, 5, 2, 4, 2, 2, 2, 4, 4, 6, 2,  // 20
-                                       2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // 30
-                                       6, 6, 2, 2, 2, 3, 5, 2, 3, 2, 2, 2, 3, 4, 6, 2,  // 40
-                                       2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // 50
-                                       6, 6, 2, 2, 2, 3, 5, 2, 4, 2, 2, 2, 5, 4, 6, 2,  // 60
-                                       2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // 70
-                                       2, 6, 2, 2, 3, 3, 3, 2, 2, 2, 2, 2, 4, 4, 4, 2,  // 80
-                                       2, 6, 2, 2, 4, 4, 4, 2, 2, 5, 2, 2, 2, 5, 2, 2,  // 90
-                                       2, 6, 2, 2, 3, 3, 3, 2, 2, 2, 2, 2, 4, 4, 4, 2,  // A0
-                                       2, 5, 2, 2, 4, 4, 4, 2, 2, 4, 2, 2, 4, 4, 4, 2,  // B0
-                                       2, 6, 2, 2, 3, 3, 5, 2, 2, 2, 2, 2, 4, 4, 6, 2,  // C0
-                                       2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2,  // D0
+                                //     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    const unsigned char length[256]= { 7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,  // 00
+                                       2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 10
+                                       6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,  // 20
+                                       2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 30
+                                       6, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,  // 40
+                                       2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // 50
+                                       6, 6, 2, 2, 3, 3, 5, 2, 4, 2, 2, 2, 5, 4, 6, 2,  // 60
+                                       2, 5, 2, 2, 4, 4, 6, 2, 2, 4, 2, 2, 4, 4, 7, 2,  // 70
+                                       2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // 80
+                                       2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,  // 90
+                                       2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,  // A0
+                                       2, 5, 2, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4,  // B0
+                                       2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,  // C0
+                                       2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,  // D0
                                        2, 6, 2, 2, 3, 3, 5, 2, 2, 2, 2, 2, 4, 4, 6, 2,  // E0
-                                       2, 5, 2, 2, 2, 4, 6, 2, 2, 4, 2, 2, 2, 4, 7, 2 };// F0
+                                       2, 5, 2, 2, 4, 4, 6, 2, 2, 4, 2, 2, 4, 4, 7, 2 };// F0
     unsigned char command;
 
     bordercross = 0;
@@ -1200,12 +1380,12 @@ int processcommand()
         case 0xF8: sed(IMPLIED); break;
         case 0x78: sei(IMPLIED); break;
 
-        case 0x81: sta(INDIRECT_X); break; 
         case 0x85: sta(ZERO_PAGE); break;
-        case 0x8D: sta(ABSOLUTE); break;
         case 0x95: sta(ZERO_PAGE_X); break;
+        case 0x8D: sta(ABSOLUTE); break;
         case 0x9D: sta(ABSOLUTE_X); break;
         case 0x99: sta(ABSOLUTE_Y); break;
+        case 0x81: sta(INDIRECT_X); break; 
         case 0x91: sta(INDIRECT_Y); break;
 
         case 0x86: stx(ZERO_PAGE); break;
@@ -1223,9 +1403,140 @@ int processcommand()
         case 0x9A: txs(IMPLIED); break;
         case 0x98: tya(IMPLIED); break;
 
-        default: nop(IMPLIED); break;
+        //
+        // Below opcodes are undocumented and rarely used. Yet they are 
+        // required for proper emulation of specific software.
+        //
+        case 0x0B: anc(IMMEDIATE); break;
+        case 0x2B: anc(IMMEDIATE); break;
+
+        case 0x0F: slo(ABSOLUTE); break;
+        case 0x1F: slo(ABSOLUTE_X); break;
+        case 0x1B: slo(ABSOLUTE_Y); break;
+        case 0x07: slo(ZERO_PAGE); break;
+        case 0x17: slo(ZERO_PAGE_X); break;
+        case 0x03: slo(INDIRECT_X); break;
+        case 0x13: slo(INDIRECT_Y); break;
+
+        case 0xA7: lax(ZERO_PAGE); break;
+        case 0xB7: lax(ZERO_PAGE_Y); break;
+        case 0xAF: lax(ABSOLUTE); break;
+        case 0xBF: lax(ABSOLUTE_Y); cpu.cycles += bordercross; break;
+        case 0xA3: lax(INDIRECT_X); break;
+        case 0xB3: lax(INDIRECT_Y); cpu.cycles += bordercross; break;
+
+        case 0x87: sax(ZERO_PAGE); break;
+        case 0x97: sax(ZERO_PAGE_Y); break;
+        case 0x8F: sax(ABSOLUTE); break;
+        case 0x83: sax(INDIRECT_X); break;
+
+        case 0x47: sre(ZERO_PAGE); break;
+        case 0x57: sre(ZERO_PAGE_X); break;
+        case 0x4F: sre(ABSOLUTE); break;
+        case 0x5F: sre(ABSOLUTE_X); break;
+        case 0x5B: sre(ABSOLUTE_Y); break;
+        case 0x43: sre(INDIRECT_X); break;
+        case 0x53: sre(INDIRECT_Y); break;
+
+        case 0x27: rla(ZERO_PAGE); break;
+        case 0x37: rla(ZERO_PAGE_X); break;
+        case 0x2F: rla(ABSOLUTE); break;
+        case 0x3F: rla(ABSOLUTE_X); break;
+        case 0x3B: rla(ABSOLUTE_Y); break;
+        case 0x23: rla(INDIRECT_X); break;
+        case 0x33: rla(INDIRECT_Y); break;
+        
+        case 0x4B: alr(IMMEDIATE); break;
+
+        case 0xBB: las(ABSOLUTE_Y); break;
+
+        case 0x6B: arr(IMMEDIATE); break;
+
+        case 0xEB: sbc(IMMEDIATE); break;
+
+        case 0xCB: sbx(IMMEDIATE); break;
+
+        case 0xC7: dcp(ZERO_PAGE); break;
+        case 0xD7: dcp(ZERO_PAGE_X); break;
+        case 0xCF: dcp(ABSOLUTE); break;
+        case 0xDF: dcp(ABSOLUTE_X); break;
+        case 0xDB: dcp(ABSOLUTE_Y); break;
+        case 0xC3: dcp(INDIRECT_X); break;
+        case 0xD3: dcp(INDIRECT_Y); break;
+
+        // 
+        // Multiple opcodes generate nops with different address modes)
+        //
+        case 0x80: 
+        case 0x82: 
+        case 0x89: 
+        case 0xC2: 
+        case 0xE2: nop(IMMEDIATE); printf("undocumented nop\n"); break;
+        
+        case 0x04: 
+        case 0x44: 
+        case 0x64: nop(ZERO_PAGE); printf("undocumented nop\n"); break;
+
+        case 0x14:
+        case 0x34:
+        case 0x54:
+        case 0x74:
+        case 0xD4:
+        case 0xF4: nop(ZERO_PAGE_X); printf("undocumented nop\n"); break;
+
+        case 0x0C: nop(ABSOLUTE); printf("undocumented nop\n"); break;
+
+        //
+        // These nops use ABSOLUTE_X addressing mode, which affect timing 
+        // in case of page border cross
+        //
+        case 0x1C:
+        case 0x3C:
+        case 0x5C:
+        case 0x7C:
+        case 0xDC:
+        case 0xFC: nop(ABSOLUTE_X); printf("undocumented nop"); cpu.cycles += bordercross; break;
+
+        // 
+        // Opcodes below cause CPU to halt execution and are called
+        // JAM by some assemblers. We do not implement JAM, treating 
+        // them as NOPS, but we print a message. 
+        //
+        case 0x02: 
+        case 0x12: 
+        case 0x22:
+        case 0x32:
+        case 0x42:
+        case 0x52:
+        case 0x62:
+        case 0x72:
+        case 0x92:
+        case 0xB2:
+        case 0xD2:
+        case 0xF2: nop(IMPLIED); printf("JAM detected, execution continues\n"); break;
+
+        // 
+        // Unstable opcodes are not yet implemented but issue warnings
+        //
+        case 0x93 : sha(ZERO_PAGE_Y); break;
+        case 0x9F : sha(ABSOLUTE_Y); break;
+        case 0x9E : shx(ABSOLUTE_Y); break;
+        case 0x9C : shy(ABSOLUTE_X); break;
+        case 0x9B : tas(ABSOLUTE_Y); break;
+        case 0x8B : ane(IMMEDIATE); break;
+        case 0xAB : lax(IMMEDIATE); break;
+
+
+        // 
+        // This includes undocumented NOPs: 
+        // 1A, 3A, 5A, 7A, DA, FA
+        //
+        default: nop(IMPLIED); printf("undocumented op, %d\n", command); break;
 
     }
+#ifdef DEBUG
+    fprintf(stderr,"\n");
+#endif 
     return 0;
 }
 
