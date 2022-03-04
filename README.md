@@ -12,6 +12,10 @@ and fixed mask for clearing bits 4 and 5 of pulled status on rti.
 
 Removed typdef from cpu struct definition as it was not needed. 
 
+Improved decimal mode operation: Non-valid BCD emulated, implemented behavior of
+all flags. Emulator now successfully runs 6502_decimal_test. Test program added
+(you still need to download the new test file from Klaus site below)
+
 
 INTRODUCTION
 

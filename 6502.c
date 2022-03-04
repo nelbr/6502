@@ -147,38 +147,43 @@ __attribute((always_inline)) inline unsigned short get_address(unsigned char mod
 
 __attribute((always_inline)) inline void adc (unsigned char mode) 
 {
-    unsigned short sum; 
-    unsigned short suml, sumh;
-    unsigned char al, ah, ol, oh;
+    short sum; 
+    char al;
+    unsigned char altsum, binsum; 
     unsigned char operand;
 #ifdef DEBUG
     fprintf(stderr,"adc ");
 #endif
     if (mode==IMMEDIATE) operand = fetchmemory();
     else operand = readmemory(get_address(mode));
-
+ 
+    // 
+    // Decimal flag is set calculate decimal adc
+    //
     if ((cpu.status & 1UL<<3)>>3) { 
-        al = cpu.a & 0x0F;
-        ol = operand & 0x0F;
-        ah = cpu.a & 0xF0;
-        oh = operand & 0xF0;
-        if (cpu.status & 1UL<<0) suml = al + ol + 1; 
-        else                     suml = al + ol;
-        sumh = ah + oh;
-        if (suml>=0x0A) {
-            suml -= 0x0A;
-            sumh += 0x10;
+        if (cpu.status & 1UL<<0) {                       // Carry set
+            al = (cpu.a & 0x0F) + (operand & 0x0F) + 1;  
+            binsum = cpu.a + operand + 1; 
         }
-        if (sumh>=0xA0) {
-            sumh -= 0xA0;
-            cpu.status |= 1UL << 0;     // set bit carry on status processor 
+        else {                                           // Carry clear
+            al = (cpu.a & 0x0F) + (operand & 0x0F);
+            binsum = cpu.a + operand;
         }
-        else {
-            cpu.status &= ~(1UL << 0);  // clear bit carry on status processor
-        }
-        sum = sumh + suml;
-        cpu.a = (char) sum; 
+        if (al>=0x0A) al = ((al + 0x06) & 0x0F) + 0x10;
+        sum = (cpu.a & 0xF0) + (operand & 0xF0) + al;
+        altsum = (cpu.a & 0xF0) + (operand & 0xF0) + al;
+        if (sum>=0xA0) sum += 0x60; 
+        if (sum>0xFF) cpu.status |= 1UL << 0;     // set bit carry on status processor 
+        else          cpu.status &= ~(1UL << 0);  // clear bit carry on status processor
+        // printf ("%d %d %d\n", cpu.a, operand, sum);
+        if (!binsum)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+        if (altsum>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+        if ((!((cpu.a ^ operand) & 0x80) && ((cpu.a ^ altsum) & 0x80))!=0) cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); // set bit overflow   
+        cpu.a = (char) sum;
     }
+    // 
+    // Decimal flag is not set, calculate binary adc
+    //
     else {
         if (cpu.status & 1UL<<0) sum = cpu.a + operand + 1; 
         else                     sum = cpu.a + operand;
@@ -674,14 +679,12 @@ __attribute((always_inline)) inline void lsr (unsigned char mode)
 
 __attribute((always_inline)) inline void nop (unsigned char mode)
 {
-    unsigned char val;
-    unsigned short aux;
     // do nothing
 #ifdef DEBUG
     fprintf(stderr,"nop ");
 #endif 
-    if (mode==IMMEDIATE) val=fetchmemory();
-    else if (mode!=IMPLIED) aux=get_address(mode);
+    if (mode==IMMEDIATE) fetchmemory();
+    else if (mode!=IMPLIED) get_address(mode);
     return;
 }
 
@@ -832,67 +835,48 @@ __attribute((always_inline)) inline void rts (unsigned char mode)
 
 __attribute((always_inline)) inline void sbc (unsigned char mode) 
 {
-    unsigned short sum; 
+    short sum; 
     unsigned char operand;
-    unsigned char al, ah, ol, oh, cl;
-    unsigned char difl, difh;
+    unsigned char binsum;
+    char al;
 #ifdef DEBUG
     fprintf(stderr,"sbc ");
 #endif 
     if (mode==IMMEDIATE) operand = fetchmemory();
     else operand = readmemory(get_address(mode));
 
+    // 
+    // If decimal flag is set, calculate decimal ADC
+    //
     if ((cpu.status & 1UL<<3)>>3) { 
-        al = cpu.a & 0x0F;
-        ol = operand & 0x0F;
-        ah = cpu.a & 0xF0;
-        oh = operand & 0xF0;
-        cl = 0;
-        if (cpu.status & 1UL<<0) {
-            if (ol>al) { 
-                difl = al + 0x0A - ol;
-                cl = 0x10;
-            }
-            else {
-                difl = al - ol;
-            }
-            if (oh+cl>ah) {
-                difh = ah + 0xA0 - oh - cl;
-                cpu.status &= ~(1UL << 0);  // clear bit carry on status processor
-            }        
-            else 
-            {
-                difh = ah - oh - cl;
-                cpu.status |= 1UL << 0;     // set bit carry on status processor
-            }   
-            sum = difh + difl;
+        if (cpu.status & 1UL<<0) {                      // If carry set
+            binsum = cpu.a + (operand^0xFFU) + 1; 
+            al = (cpu.a & 0x0F) - (operand & 0x0F);     
         }
-        else {
-            if ((ol+1)>al) { 
-                difl = al + 0x0A - ol - 1;
-                cl = 0x10;
-            }
-            else {
-                difl = al - ol - 1;
-            }
-            if (oh+cl>ah) {
-                difh = ah + 0xA0 - oh - cl;
-                cpu.status &= ~(1UL << 0);  // clear bit carry on status processor
-            }        
-            else 
-            {
-                difh = ah - oh -cl;
-                cpu.status |= 1UL << 0;     // set bit carry on status processor
-            }   
-            sum = difh + difl;
+        else {                                          // If carry clear
+            binsum = cpu.a + (operand^0xFFU);
+            al = (cpu.a & 0x0F) - (operand & 0x0F) - 1; 
         }
-        cpu.a = (char) sum; 
+        if (al<0) al = ((al - 0x06) & 0x0F) - 0x10;
+        sum = (cpu.a & 0xF0) - (operand & 0xF0) + al;
+        if (sum<0) sum -= 0x60; 
+        if (sum>=0) cpu.status |= 1UL << 0;     // set bit carry on status processor 
+        else        cpu.status &= ~(1UL << 0);  // clear bit carry on status processor
+        if (!binsum)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+        if (binsum>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+        if ((!((cpu.a ^ (operand^0xFFU)) & 0x80) && ((cpu.a ^ binsum) & 0x80))!=0) cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); // set bit overflow   
+        // printf ("%d %d %d\n", cpu.a, operand, sum);
+        cpu.a = (char) sum;
     }
+
+    // 
+    // If decimal flag is not set, calculate binary ADC
+    //
     else {
         operand ^= 0xFFU;
         if (cpu.status & 1UL<<0) sum = cpu.a + operand + 1; 
         else                     sum = cpu.a + operand;
-        if (sum>0xFF)    cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0);  // set bit carry on status processor
+        if (sum>0xFF) cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0);  // set bit carry on status processor
         if ((!((cpu.a ^ operand) & 0x80) && ((cpu.a ^ sum) & 0x80))!=0) cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); // set bit overflow   
         cpu.a = (char) sum; 
         if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
@@ -1030,17 +1014,18 @@ __attribute((always_inline)) inline void lax (unsigned char mode) {
 #ifdef DEBUG
     fprintf(stderr,"lax ");
 #endif 
+    printf ("LAX opcode detected\n");
     if (mode==IMMEDIATE) {
-        fetchmemory();
-        printf ("LAX opcode detected (unstable, not implemented)\n");
+        cpu.a &= fetchmemory();
+        cpu.x = cpu.a;
     }
     else 
     {
         cpu.a = readmemory(get_address(mode));
         cpu.x = cpu.a;
-        if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
-        if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
     }
+    if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
+    if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
 }
 
 __attribute((always_inline)) inline void sre (unsigned char mode)
@@ -1156,19 +1141,40 @@ __attribute((always_inline)) inline void sbx (unsigned char mode) {
 }
 
 __attribute((always_inline)) inline void sha (unsigned char mode) {
-    printf ("SHA opcode detected (unstable, not implemented)\n");
-}
-
+    unsigned short address; 
+    unsigned char operand_high;
+    printf ("SHA opcode detected\n");
+    address = get_address(mode); 
+    operand_high = (unsigned char) (((address & 0xFF00)>>8)+1);
+    writememory (address, cpu.a & cpu.x & operand_high);
+}    
+    
 __attribute((always_inline)) inline void shx (unsigned char mode) {
-    printf ("SHX opcode detected (unstable, not implemented)\n");
+    unsigned short address; 
+    unsigned char operand_high;
+    printf ("SHX opcode detected\n");
+    address = get_address(mode); 
+    operand_high = (unsigned char) (((address & 0xFF00)>>8)+1);
+    writememory (address, cpu.x & operand_high);
 }
 
 __attribute((always_inline)) inline void shy (unsigned char mode) {
-    printf ("SHY opcode detected (unstable, not implemented)\n");
+    unsigned short address; 
+    unsigned char operand_high;
+    printf ("SHY opcode detected\n");
+    address = get_address(mode); 
+    operand_high = (unsigned char) (((address & 0xFF00)>>8)+1);
+    writememory (address, cpu.y & operand_high);
 }
 
 __attribute((always_inline)) inline void tas (unsigned char mode) {
-    printf ("TAS opcode detected (unstable, not implemented)\n");
+    unsigned short address; 
+    unsigned char operand_high;
+    printf ("TAS opcode detected\n");
+    address = get_address(mode); 
+    operand_high = (unsigned char) (((address & 0xFF00)>>8)+1);
+    cpu.sp = cpu.x & cpu.a;
+    writememory (address, cpu.sp & operand_high);
 }
 
 __attribute((always_inline)) inline void ane (unsigned char mode) {
@@ -1179,8 +1185,6 @@ __attribute((always_inline)) inline void ane (unsigned char mode) {
 /*
 __attribute((always_inline)) inline void rra (unsigned char mode)
 __attribute((always_inline)) inline void isc (unsigned char mode)
-__attribute((always_inline)) inline void skb (unsigned char mode)
-__attribute((always_inline)) inline void skw (unsigned char mode)
 */
 
 
