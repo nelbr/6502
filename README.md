@@ -1,4 +1,4 @@
-Attention this in a "WORK IN PROGRESS" 6502 library. More documentation
+Attention this is a "WORK IN PROGRESS" 6502 library. More documentation
 to follow
 
 
