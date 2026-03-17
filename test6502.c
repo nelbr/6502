@@ -76,7 +76,7 @@ int main()
     long seconds, micros; 
 
     // 
-    // Load test code into memory, exit program if file does can't be loaded
+    // Load test code into memory, exit program if file doesn't exist or can't be loaded
     //
 	if (rominit()!=0) {
         printf( "Could not open binary test file\n" ) ;
@@ -116,7 +116,7 @@ int main()
         // Uncomment this printf if you would like to check which test is executing.
         // Can be useful for finding our which test is failing, but increases execution time
         //
-        // printf ("Teste numero %2X %2X %2X\n", memory[0x200], memory[0x203], memory[0x204]);
+        // printf ("Teste numero %2X %2X %2X %i\n", memory[0x200], memory[0x203], memory[0x204], counter);
 
         // 
         // When we reach test F0 we have finished the test suite

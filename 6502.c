@@ -157,41 +157,58 @@ __attribute((always_inline)) inline void adc (unsigned char mode)
     if (mode==IMMEDIATE) operand = fetchmemory();
     else operand = readmemory(get_address(mode));
  
+    if (cpu.status & 1UL<<0) sum = cpu.a + operand + 1; 
+    else                     sum = cpu.a + operand;
+
     // 
     // Decimal flag is set calculate decimal adc
     //
     if ((cpu.status & 1UL<<3)>>3) { 
-        if (cpu.status & 1UL<<0) {                       // Carry set
-            al = (cpu.a & 0x0F) + (operand & 0x0F) + 1;  
-            binsum = cpu.a + operand + 1; 
-        }
-        else {                                           // Carry clear
-            al = (cpu.a & 0x0F) + (operand & 0x0F);
-            binsum = cpu.a + operand;
-        }
+
+        if (cpu.status & 1UL<<0) al = (cpu.a & 0x0F) + (operand & 0x0F) + 1;  
+        else                     al = (cpu.a & 0x0F) + (operand & 0x0F);
         if (al>=0x0A) al = ((al + 0x06) & 0x0F) + 0x10;
-        sum = (cpu.a & 0xF0) + (operand & 0xF0) + al;
-        altsum = (cpu.a & 0xF0) + (operand & 0xF0) + al;
+
+        binsum = (char) sum;
+        sum    = (cpu.a & 0xF0) + (operand & 0xF0) + al;
+        altsum = (char) sum;
         if (sum>=0xA0) sum += 0x60; 
-        if (sum>0xFF) cpu.status |= 1UL << 0;     // set bit carry on status processor 
-        else          cpu.status &= ~(1UL << 0);  // clear bit carry on status processor
-        // printf ("%d %d %d\n", cpu.a, operand, sum);
-        if (!binsum)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
-        if (altsum>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
-        if ((!((cpu.a ^ operand) & 0x80) && ((cpu.a ^ altsum) & 0x80))!=0) cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); // set bit overflow   
+
+        // set bit carry on status processor
+        if (sum>0xFF) cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0); 
+
+        // set bit zero on status processor 
+        if (!binsum)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  
+
+        // set bit negative on status processor
+        if (altsum>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7); 
+
+        // set bit overflow   
+        if ((!((cpu.a ^ operand) & 0x80) && ((cpu.a ^ altsum) & 0x80))!=0) 
+            cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); 
+
         cpu.a = (char) sum;
     }
     // 
     // Decimal flag is not set, calculate binary adc
     //
     else {
-        if (cpu.status & 1UL<<0) sum = cpu.a + operand + 1; 
-        else                     sum = cpu.a + operand;
-        if (sum>0xFF)    cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0);  // set bit carry on status processor
-        if ((!((cpu.a ^ operand) & 0x80) && ((cpu.a ^ sum) & 0x80))!=0) cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); // set bit overflow   
+
+        // set bit carry on status processor
+        if (sum>0xFF)  cpu.status |= 1UL << 0; else cpu.status &= ~(1UL << 0);  
+
+        // set bit overflow on status processor
+        if ((!((cpu.a ^ operand) & 0x80) && ((cpu.a ^ sum) & 0x80))!=0) 
+            cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); 
+
         cpu.a = (char) sum; 
-        if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
-        if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
+
+        // set bit zero on status processor 
+        if (!cpu.a)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  
+
+        // set bit negative on status processor
+        if (cpu.a>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  
+
     }
 
 }
@@ -838,7 +855,7 @@ __attribute((always_inline)) inline void sbc (unsigned char mode)
     short sum; 
     unsigned char operand;
     unsigned char binsum;
-    char al;
+    int al;
 #ifdef DEBUG
     fprintf(stderr,"sbc ");
 #endif 
@@ -865,7 +882,7 @@ __attribute((always_inline)) inline void sbc (unsigned char mode)
         if (!binsum)      cpu.status |= 1UL << 1; else cpu.status &= ~(1UL << 1);  // set bit zero on status processor 
         if (binsum>=0x80) cpu.status |= 1UL << 7; else cpu.status &= ~(1UL << 7);  // set bit negative on status processor
         if ((!((cpu.a ^ (operand^0xFFU)) & 0x80) && ((cpu.a ^ binsum) & 0x80))!=0) cpu.status |= 1UL << 6; else cpu.status &= ~(1UL << 6); // set bit overflow   
-        // printf ("%d %d %d\n", cpu.a, operand, sum);
+        // printf ("%02X %02X %02X\n", cpu.a, operand, sum);
         cpu.a = (char) sum;
     }
 
@@ -1475,20 +1492,20 @@ int processcommand()
         case 0x82: 
         case 0x89: 
         case 0xC2: 
-        case 0xE2: nop(IMMEDIATE); printf("undocumented nop\n"); break;
+        case 0xE2: nop(IMMEDIATE); printf("undocumented nop %2X\n", command); break;
         
         case 0x04: 
         case 0x44: 
-        case 0x64: nop(ZERO_PAGE); printf("undocumented nop\n"); break;
+        case 0x64: nop(ZERO_PAGE); printf("undocumented nop %2X\n", command); break;
 
         case 0x14:
         case 0x34:
         case 0x54:
         case 0x74:
         case 0xD4:
-        case 0xF4: nop(ZERO_PAGE_X); printf("undocumented nop\n"); break;
+        case 0xF4: nop(ZERO_PAGE_X); printf("undocumented nop %2X\n", command); break;
 
-        case 0x0C: nop(ABSOLUTE); printf("undocumented nop\n"); break;
+        case 0x0C: nop(ABSOLUTE); printf("undocumented nop %2X\n", command); break;
 
         //
         // These nops use ABSOLUTE_X addressing mode, which affect timing 
@@ -1499,7 +1516,7 @@ int processcommand()
         case 0x5C:
         case 0x7C:
         case 0xDC:
-        case 0xFC: nop(ABSOLUTE_X); printf("undocumented nop"); cpu.cycles += bordercross; break;
+        case 0xFC: nop(ABSOLUTE_X); printf("undocumented nop %2X", command); cpu.cycles += bordercross; break;
 
         // 
         // Opcodes below cause CPU to halt execution and are called
@@ -1517,7 +1534,7 @@ int processcommand()
         case 0x92:
         case 0xB2:
         case 0xD2:
-        case 0xF2: nop(IMPLIED); printf("JAM detected, execution continues\n"); break;
+        case 0xF2: nop(IMPLIED); printf("JAM detected, execution continues %2X\n", command); break;
 
         // 
         // Unstable opcodes are not yet implemented but issue warnings
@@ -1535,7 +1552,7 @@ int processcommand()
         // This includes undocumented NOPs: 
         // 1A, 3A, 5A, 7A, DA, FA
         //
-        default: nop(IMPLIED); printf("undocumented op, %d\n", command); break;
+        default: nop(IMPLIED); printf("undocumented nop, %2X\n", command); break;
 
     }
 #ifdef DEBUG
@@ -1551,8 +1568,8 @@ void interrupt ()
     fprintf(stderr,"External Interrupt ");
 #endif 
     if (!(cpu.status&0x04)) {
-        operand_l = (char) (cpu.pc+1);
-        operand_h = (char) ((cpu.pc+1)>>8);
+        operand_l = (char) (cpu.pc);
+        operand_h = (char) ((cpu.pc)>>8);
         writememory(0x100+cpu.sp, operand_h);
         cpu.sp--;
         writememory(0x100+cpu.sp, operand_l);
@@ -1564,6 +1581,7 @@ void interrupt ()
         operand_h = readmemory(0xFFFF);
         cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
         cpu.status |= 0x04;
+        cpu.cycles += 7;
     }
 }
 
@@ -1573,8 +1591,8 @@ void nmi ()
 #ifdef DEBUG
     fprintf(stderr,"External Non-Maskable Interrupt ");
 #endif 
-    operand_l = (char) (cpu.pc+1);
-    operand_h = (char) ((cpu.pc+1)>>8);
+    operand_l = (char) (cpu.pc);
+    operand_h = (char) ((cpu.pc)>>8);
     writememory(0x100+cpu.sp, operand_h);
     cpu.sp--;
     writememory(0x100+cpu.sp, operand_l);
@@ -1586,4 +1604,5 @@ void nmi ()
     operand_h = readmemory(0xFFFB);
     cpu.pc = (unsigned short) ((operand_h<<8) | (operand_l));
     cpu.status |= 0x04;
+    cpu.cycles += 7;
 }
