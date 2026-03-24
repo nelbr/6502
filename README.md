@@ -18,7 +18,7 @@ all flags. Emulator now successfully runs 6502_decimal_test. Test program added
 
 Mar 2026: Fixed a couple of nasty bugs: Increase cpu.cycles by 7 when running an
 interrupt or nmi. Push the current program counter to stack instead of program counter
-+ 1 as before.
+plus 1 as before.
 
 
 INTRODUCTION
